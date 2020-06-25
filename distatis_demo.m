@@ -24,6 +24,7 @@ matA(:,:,4) = [0	0.014	0.159	0.004	0.001	0.002
     0.001	0.024	0.067	0.001	0	0.007
     0.002	0.004	0.053	0.008	0.007	0];
 
+% row = object; col = assessor
 sortData = [1 4 3 4 1 1 2 2 1 3
 4 5 2 5 2 3 1 1 4 3
 3 1 2 3 2 4 3 1 1 2
@@ -32,11 +33,9 @@ sortData = [1 4 3 4 1 1 2 2 1 3
 2 3 1 1 3 5 4 4 3 1
 1 4 3 4 1 1 2 2 2 4
 5 2 4 2 4 2 5 3 4 5];
-distData = distatis_s2d(sortData)
+distData = distatis_s2d(sortData);
 
 %% DISTATIS
 [eigval,eigvector,fscore] = distatis(matA);
-[eigval,eigvector,fscore] = distatis(matA,[1 1 2 2],'br','x.');
-
 [eigval,eigvector,fscore] = distatis(distData);
 

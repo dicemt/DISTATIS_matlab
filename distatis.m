@@ -1,13 +1,15 @@
-function varargout = distatis(data,group3,groupcolor3,groupsym3)
-% Perform DISTATIS on 3D data
+function varargout = distatis(data,group3,groupcolor3,groupsym3,groupsiz3,grouplabel3)
+% Perform DISTATIS on a 3D distance (dissimilarity) matrix
 % FORMAT [eigval,eigvector,fscore,eigval3,eigvector3,fscore3] = distatis(data)
 % INPUTS:
-% data           - 3D matrix [n x n x m]
+% data           - Distance matrix [n x n x m]
 %
 % OPTIONAL INPUTS:
-% group3         - Group coding for dim 3 (eg, [1 1 2 2] % 2 groups, dim3 is 4)
-% groupcolor3    - Group color for dim 3 (eg, 'br' % blue, red)
-% groupsym3      - Group symbol for dim 3 (eg, 'x.' % x point, filled circle)
+% group3         - Group coding for dim 3 (eg, [1 1 2 2] % 2 groups)
+% groupcolor3    - Group color for dim 3 (eg, 'rb' or [1 0 0; 0 1 0] % red, blue)
+% groupsym3      - Group symbol for dim 3 (eg, 'x.' % x symbol, filled circle)
+% groupsiz3      - Group size for dim 3 (eg, [4 6] % 2 groups)
+% grouplabel3    - Group label for dim 3 (eg, {'pixels','measures','ratings','pairwise'})
 % 
 % OUTPUTS:
 % eigval         - Eigenvalues for compromise
@@ -17,7 +19,7 @@ function varargout = distatis(data,group3,groupcolor3,groupsym3)
 % eigvector3     - Eigenvector for dim3 data
 % fscore3        - Factor score for dim3 data
 % 
-% REFERENCE
+% REFERENCE:
 % Abdi H, Toole AJO, Valentin D, Edelman B (2005)
 % DISTATIS: The analysis of multiple distance matrices.
 % IEEE CVPR, 42-47.
@@ -32,20 +34,29 @@ function varargout = distatis(data,group3,groupcolor3,groupsym3)
 % https://www.mathworks.com/matlabcentral/fileexchange/3345-plot-arrowhead
 %__________________________________________________________________________
 % Copyright (C) 2020 Daisuke MATSUYOSHI
-% $Id: distatis.m 0001 2020-06-18Z $
+% $Id: distatis.m 0002 2020-06-25Z $
 
-if nargin < 2
+if nargin < 2 || isempty(group3)
     group3 = 1:size(data,3);
 end
 
-if nargin < 3
+if nargin < 3 || isempty(groupcolor3)
     groupcolor3 = [];
 end
 
-if nargin < 4
+if nargin < 4 || isempty(groupsym3)
     groupsym3 = [];
 end
 
+if nargin < 5
+    groupsiz3 = [];
+end
+
+if nargin < 6 || isempty(grouplabel3)
+    grouplabel3 = cellstr(num2str([1:size(data,3)]'));
+end
+
+% Settings
 nrow = size(data,1);
 matI = eye(nrow);
 m = ones(nrow,1)/nrow;
@@ -68,8 +79,8 @@ N = diag(diag(A));
 for i=1:size(X,2)
     n(i) = norm(X(:,i),2); % L2
 end
-C = A ./ (n(:)*n(:).'); % Cosine matrix
-Rv = A ./ sqrt(diag(A)*diag(A).'); % congruence coefficients
+C = A ./ (n(:)*n(:).'); % Cosine matrix % N^(-1/2)*A*N^(-1/2)
+Rv = A ./ sqrt(diag(A)*diag(A).'); % Congruence coefficients
 
 % PCA
 [V,D] = eig(C);
@@ -98,8 +109,8 @@ varargout{3} = Fscore;
 % PCA Plot1 (PC1 & PC2) | Dim 3
 figure
 hold on
-gscatter(G(:,1),G(:,2),group3,groupcolor3,groupsym3,[],'off') % give each component the length corresponding to its eigenvalue
-text(G(:,1), G(:,2), cellstr(num2str([1:length(G)]')));
+gscatter(G(:,1),G(:,2),group3,groupcolor3,groupsym3,groupsiz3,'off') % weighted with eigenvalue
+text(G(:,1), G(:,2), grouplabel3);
 plot([0,0],ylim,':k','HandleVisibility','off')
 plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at a full length
 plot(xlim,[0,0],':k','HandleVisibility','off')
@@ -123,17 +134,18 @@ hold off
 for i=1:size(Snorm,3)
     Fs(:,:,i) = Snorm(:,:,i) * eigSplusV * diag(dSplus.^(-1/2));
 end
-if size(data,3) > 7
-    cols = colorcube;
+
+cols = [1 0 0; 0 1 0; 0 0 1; 1 1 0; 1 0 1; 0 1 1; 0 0 0];
+if size(data,3) < 15
+    cols = [cols; lines];
 else
-    cols = lines;
+    cols = colorcube;
 end
+
 figure
 hold on
 gscatter(eigSplusV(:,1),eigSplusV(:,2),1:length(eigSplusV),[],[],[],'off')
 text(eigSplusV(:,1), eigSplusV(:,2), cellstr(num2str([1:length(eigSplusV)]')));
-plot([0,0],ylim,':k','HandleVisibility','off')
-plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at a full length
 plot(xlim,[0,0],':k','HandleVisibility','off')
 for j=1:size(Fs,3)
     for i=1:length(eigSplusV)
@@ -144,6 +156,7 @@ for j=1:size(Fs,3)
         plot_arrow(x0, y0, x1, y1,'color',cols(j,:),'facecolor',cols(j,:));
     end
 end
+plot([0,0],ylim,':k','HandleVisibility','off')
 xlabel(sprintf('PC1 (%.1f%%)',dSplus(1)/sum(dSplus)*100))
 ylabel(sprintf('PC2 (%.1f%%)',dSplus(2)/sum(dSplus)*100))
 hold off

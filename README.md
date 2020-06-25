@@ -1,17 +1,17 @@
 # DISTATIS_matlab
 Daisuke Matsuyoshi (National Institute for Radiological Sciences ([QST-NIRS](https://www.qst.go.jp/site/qst-english/)) and [Araya, Inc.](https://www.araya.org/))
 
-Implementation of DISTATIS written in MATLAB. DISTATIS is a generalization of classial multidimensional scaling and handles several sets of data tables (distance matrix or dissimilarity matrix) collected on the same set of observations, combining datasets into a common consensus ("compromise") structure.
+Implementation of DISTATIS written in MATLAB. DISTATIS is a generalization of classial multidimensional scaling and handles *m* sets of data tables collected on the same set of *n* observations, combining datasets into a common consensus structure, called "compromise."
 
 
 # Usage
 
 ## Basic usage
 ```matlab
-[eigval,eigvector,fscore,eigval3,eigvector3,fscore3] = distatis(mat3D);
+[eigval,eigvector,fscore,eigval3,eigvector3,fscore3] = distatis(data);
 ```
 
-- `mat3D` should be a 3D matrix [n x n x m]. 
+- `data` should be a 3D distance (dissimilarity) matrix [n x n x m]. 
 - See `distatis_demo.m` for example usage
 
 ## Outputs
