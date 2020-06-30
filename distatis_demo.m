@@ -39,3 +39,5 @@ distData = distatis_s2d(sortData);
 [eigval,eigvector,fscore] = distatis(matA);
 [eigval,eigvector,fscore] = distatis(distData);
 
+% Plot options
+[eigval,eigvector,fscore] = distatis(matA,[1 1 2 2], [1 0 0; 0 1 0], 'x.',[3 10],{'pixels','measures','ratings','pairwise'},[1 1 1 2 2 2],'br','x.',[8 4],{'M1','M2','M3','F1','F2','F3'});

@@ -1,15 +1,20 @@
-function varargout = distatis(data,group3,groupcolor3,groupsym3,groupsiz3,grouplabel3)
+function varargout = distatis(data,group3,groupcolor3,groupsym3,groupsiz3,grouplabel3,compcoding,compcolor,compsym,compsiz,complabel)
 % Perform DISTATIS on a 3D distance (dissimilarity) matrix
 % FORMAT [eigval,eigvector,fscore,eigval3,eigvector3,fscore3] = distatis(data)
 % INPUTS:
-% data           - Distance matrix [n x n x m]
+% data           - Distance (dissimilarity) matrix [n x n x m]
 %
-% OPTIONAL INPUTS:
+% OPTIONAL INPUTS (for plots):
 % group3         - Group coding for dim 3 (eg, [1 1 2 2] % 2 groups)
-% groupcolor3    - Group color for dim 3 (eg, 'rb' or [1 0 0; 0 1 0] % red, blue)
+% groupcolor3    - Group color for dim 3 (eg, [1 0 0; 0 0 1] % red, blue)
 % groupsym3      - Group symbol for dim 3 (eg, 'x.' % x symbol, filled circle)
 % groupsiz3      - Group size for dim 3 (eg, [4 6] % 2 groups)
 % grouplabel3    - Group label for dim 3 (eg, {'pixels','measures','ratings','pairwise'})
+% compcoding     - Compromise coding for dim 1/2 (eg, [1 1 1 2 2 2] % 2 groups)
+% compcolor      - Compromise color for dim 1/2 (eg, [0 1 0; 1 0 0] % green, red)
+% compsym        - Compromise symbol for dim 1/2 (eg, 'x.' % x symbol, filled circle)
+% compsiz        - Compromise size for dim 1/2 (eg, [4 8] % 2 groups)
+% complabel      - Compromise label for dim 1/2 (eg, {'M1','M2','M3','F1','F2','F3'})
 % 
 % OUTPUTS:
 % eigval         - Eigenvalues for compromise
@@ -34,10 +39,17 @@ function varargout = distatis(data,group3,groupcolor3,groupsym3,groupsiz3,groupl
 % https://www.mathworks.com/matlabcentral/fileexchange/3345-plot-arrowhead
 %__________________________________________________________________________
 % Copyright (C) 2020 Daisuke MATSUYOSHI
-% $Id: distatis.m 0002 2020-06-25Z $
+% $Id: distatis.m 0003 2020-06-30Z $
 
+%% Data check
+[nx,ny,nz] = size(data);
+if nx ~= ny
+    error('Invalid dimension (input matrix)!');
+end
+
+%% Settings
 if nargin < 2 || isempty(group3)
-    group3 = 1:size(data,3);
+    group3 = 1:nz;
 end
 
 if nargin < 3 || isempty(groupcolor3)
@@ -53,19 +65,40 @@ if nargin < 5
 end
 
 if nargin < 6 || isempty(grouplabel3)
-    grouplabel3 = cellstr(num2str([1:size(data,3)]'));
+    grouplabel3 = cellstr(num2str(transpose(1:nz)));
 end
 
-% Settings
-nrow = size(data,1);
-matI = eye(nrow);
-m = ones(nrow,1)/nrow;
-M = matI - ones(nrow,1) * m';
+if nargin < 7 || isempty(compcoding)
+    compcoding = 1:nx;
+end
+
+if nargin < 8 || isempty(compcolor)
+    compcolor = [];
+end
+
+if nargin < 9 || isempty(compsym)
+    compsym = [];
+end
+
+if nargin < 10
+    compsiz = [];
+end
+
+if nargin < 11 || isempty(complabel)
+    complabel = cellstr(num2str(transpose(1:nx)));
+end
+
+
+
+%% Initialize
+matI = eye(nx);
+m = ones(nx,1)/nx;
+M = matI - ones(nx,1) * m';
 
 %% Calc
 % Cross product
 Snorm = zeros(size(data));
-for i=1:size(data,3)
+for i=1:nz
     S = (-1/2) * M * data(:,:,i) * M';
     eigSt = eig(S);
     eigS = sort(eigSt,'descend');
@@ -76,6 +109,7 @@ X = reshape(Snorm,[],size(Snorm,3)); % complete data, normalized cross-product v
 % Compromise matrix
 A = X' * X; % scalar product matrix
 N = diag(diag(A));
+n = zeros(size(X,2),1);
 for i=1:size(X,2)
     n(i) = norm(X(:,i),2); % L2
 end
@@ -95,7 +129,7 @@ varargout{6} = G;
 % Optimal weights
 P = Vs;
 alpha = P ./ pinv((ones(length(P),1)/length(P))'*P)';
-Splus = reshape(X * alpha(:,1),nrow,nrow);
+Splus = reshape(X * alpha(:,1),nx,nx);
 [V,D] = eig(Splus);
 [dSplus,idx] = sort(diag(D),'descend');
 eigSplusD = D(idx,idx);
@@ -112,7 +146,7 @@ hold on
 gscatter(G(:,1),G(:,2),group3,groupcolor3,groupsym3,groupsiz3,'off') % weighted with eigenvalue
 text(G(:,1), G(:,2), grouplabel3);
 plot([0,0],ylim,':k','HandleVisibility','off')
-plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at a full length
+plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
 plot(xlim,[0,0],':k','HandleVisibility','off')
 xlabel(sprintf('PC1 (%.1f%%)',d(1)/sum(d)*100))
 ylabel(sprintf('PC2 (%.1f%%)',d(2)/sum(d)*100))
@@ -121,31 +155,41 @@ hold off
 % PCA Plot2 (PC1 & PC2) | Compromise Dim 1/2
 figure
 hold on
-gscatter(eigSplusV(:,1),eigSplusV(:,2),1:length(eigSplusV),[],[],[],'off')
-text(eigSplusV(:,1), eigSplusV(:,2), cellstr(num2str([1:length(eigSplusV)]')));
+gscatter(eigSplusV(:,1),eigSplusV(:,2),compcoding,compcolor,compsym,compsiz,'off')
+text(eigSplusV(:,1), eigSplusV(:,2), complabel);
 plot([0,0],ylim,':k','HandleVisibility','off')
-plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at a full length
+plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
 plot(xlim,[0,0],':k','HandleVisibility','off')
 xlabel(sprintf('PC1 (%.1f%%)',dSplus(1)/sum(dSplus)*100))
 ylabel(sprintf('PC2 (%.1f%%)',dSplus(2)/sum(dSplus)*100))
 hold off
 
 % PCA Plot3 (PC1 & PC2) | Compromise Dim 1/2 & 3
+Fs = zeros(size(data));
 for i=1:size(Snorm,3)
     Fs(:,:,i) = Snorm(:,:,i) * eigSplusV * diag(dSplus.^(-1/2));
 end
 
-cols = [1 0 0; 0 1 0; 0 0 1; 1 1 0; 1 0 1; 0 1 1; 0 0 0];
-if size(data,3) < 15
-    cols = [cols; lines];
+if isempty(groupcolor3)
+    cols = [1 0 0; 0 1 0; 0 0 1; 1 1 0; 1 0 1; 0 1 1; 0 0 0];
+    if nz < 15
+        cols = [cols; lines];
+    else
+        cols = colorcube;
+    end
 else
-    cols = colorcube;
+    nGroup = numel(unique(group3));
+    nPerGroup = nz/nGroup;
+    cols = zeros(nz,3);
+    for i=1:nGroup
+        cols((i-1)*nPerGroup+1:i*nPerGroup,:) = repmat(groupcolor3(i,:),nPerGroup,1);
+    end
 end
 
 figure
 hold on
-gscatter(eigSplusV(:,1),eigSplusV(:,2),1:length(eigSplusV),[],[],[],'off')
-text(eigSplusV(:,1), eigSplusV(:,2), cellstr(num2str([1:length(eigSplusV)]')));
+gscatter(eigSplusV(:,1),eigSplusV(:,2),compcoding,compcolor,compsym,compsiz,'off')
+text(eigSplusV(:,1), eigSplusV(:,2), complabel);
 plot(xlim,[0,0],':k','HandleVisibility','off')
 for j=1:size(Fs,3)
     for i=1:length(eigSplusV)
@@ -157,6 +201,7 @@ for j=1:size(Fs,3)
     end
 end
 plot([0,0],ylim,':k','HandleVisibility','off')
+plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
 xlabel(sprintf('PC1 (%.1f%%)',dSplus(1)/sum(dSplus)*100))
 ylabel(sprintf('PC2 (%.1f%%)',dSplus(2)/sum(dSplus)*100))
 hold off
