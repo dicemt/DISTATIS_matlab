@@ -12,7 +12,7 @@ Implementation of DISTATIS written in MATLAB. DISTATIS is a generalization of cl
 ```
 
 - `data` should be a 3D distance (dissimilarity) matrix [n x n x m].
-    - *n x n* distance matrix stacking along Z-direction *m* times
+    - *n x n* distance matrices stacking along Z-direction *m* times
 - For example usage, see `distatis_demo.m` 
 
 ## Outputs
