@@ -11,8 +11,9 @@ Implementation of DISTATIS written in MATLAB. DISTATIS is a generalization of cl
 [eigval,eigvector,fscore,eigval3,eigvector3,fscore3] = distatis(data);
 ```
 
-- `data` should be a 3D distance (dissimilarity) matrix [n x n x m]. 
-- See `distatis_demo.m` for example usage
+- `data` should be a 3D distance (dissimilarity) matrix [n x n x m].
+    - *n x n* distance matrix stacking along Z-direction *m* times
+- For example usage, see `distatis_demo.m` 
 
 ## Outputs
 - eigval         - Eigenvalues for compromise
