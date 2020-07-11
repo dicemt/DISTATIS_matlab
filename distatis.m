@@ -39,7 +39,7 @@ function varargout = distatis(data,group3,groupcolor3,groupsym3,groupsiz3,groupl
 % https://www.mathworks.com/matlabcentral/fileexchange/3345-plot-arrowhead
 %__________________________________________________________________________
 % Copyright (C) 2020 Daisuke MATSUYOSHI
-% $Id: distatis.m 0003 2020-06-30Z $
+% $Id: distatis.m 0004 2020-07-11Z $
 
 %% Data check
 [nx,ny,nz] = size(data);
@@ -204,4 +204,37 @@ plot([0,0],ylim,':k','HandleVisibility','off')
 plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
 xlabel(sprintf('PC1 (%.1f%%)',dSplus(1)/sum(dSplus)*100))
 ylabel(sprintf('PC2 (%.1f%%)',dSplus(2)/sum(dSplus)*100))
+hold off
+
+% PCA Plot4 (PC3 & PC4) | Compromise Dim 1/2
+figure
+hold on
+gscatter(eigSplusV(:,3),eigSplusV(:,4),compcoding,compcolor,compsym,compsiz,'off')
+text(eigSplusV(:,3), eigSplusV(:,4), complabel);
+plot([0,0],ylim,':k','HandleVisibility','off')
+plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+plot(xlim,[0,0],':k','HandleVisibility','off')
+xlabel(sprintf('PC3 (%.1f%%)',dSplus(3)/sum(dSplus)*100))
+ylabel(sprintf('PC4 (%.1f%%)',dSplus(4)/sum(dSplus)*100))
+hold off
+
+% PCA Plot5 (PC3 & PC4) | Compromise Dim 1/2 & 3
+figure
+hold on
+gscatter(eigSplusV(:,3),eigSplusV(:,4),compcoding,compcolor,compsym,compsiz,'off')
+text(eigSplusV(:,3), eigSplusV(:,4), complabel);
+plot(xlim,[0,0],':k','HandleVisibility','off')
+for j=1:size(Fs,3)
+    for i=1:length(eigSplusV)
+        x0 = eigSplusV(i,3);
+        y0 = eigSplusV(i,4);
+        x1 = Fs(i,3,j);
+        y1 = Fs(i,4,j);
+        plot_arrow(x0, y0, x1, y1,'color',cols(j,:),'facecolor',cols(j,:));
+    end
+end
+plot([0,0],ylim,':k','HandleVisibility','off')
+plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+xlabel(sprintf('PC3 (%.1f%%)',dSplus(3)/sum(dSplus)*100))
+ylabel(sprintf('PC4 (%.1f%%)',dSplus(4)/sum(dSplus)*100))
 hold off

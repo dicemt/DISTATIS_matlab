@@ -24,7 +24,7 @@ Implementation of DISTATIS written in MATLAB. DISTATIS is a generalization of cl
 - fscore3        - Factor score for dim 3
 
 # Reference
-- Abdi H, Toole AJO, Valentin D, Edelman B (2005) [DISTATIS: The analysis of multiple distance matrices.](https://ieeexplore.ieee.org/document/1565340) IEEE CVPR, 42-47. doi: 10.1109/CVPR.2005.445
+- Abdi H, Toole AJO, Valentin D, Edelman B (2005) [DISTATIS: The analysis of multiple distance matrices.](https://ieeexplore.ieee.org/document/1565340) IEEE CVPR 2005, 42-47. doi: 10.1109/CVPR.2005.445
 - Abdi H, Valentin D, Chollet S, Chrea C (2007) [Analyzing assessors and products in sorting tasks: DISTATIS, theory and applications.](https://www.sciencedirect.com/science/article/abs/pii/S0950329306001236) Food Qual Prefer 18:627-640. doi: 10.1016/j.foodqual.2006.09.003
 
 # License
