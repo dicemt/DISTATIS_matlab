@@ -1,10 +1,11 @@
-function varargout = distatis(data,group3,groupcolor3,groupsym3,groupsiz3,grouplabel3,compcoding,compcolor,compsym,compsiz,complabel)
+function varargout = distatis(data,nPCs,group3,groupcolor3,groupsym3,groupsiz3,grouplabel3,compcoding,compcolor,compsym,compsiz,complabel)
 % Perform DISTATIS on a 3D distance (dissimilarity) matrix
 % FORMAT [eigval,eigvector,fscore,eigval3,eigvector3,fscore3] = distatis(data)
 % INPUTS:
 % data           - Distance (dissimilarity) matrix [n x n x m]
 %
 % OPTIONAL INPUTS (for plots):
+% nPCs           - The number of PCs to plot (default: 2)
 % group3         - Group coding for dim 3 (eg, [1 1 2 2] % 2 groups)
 % groupcolor3    - Group color for dim 3 (eg, [1 0 0; 0 0 1] % red, blue)
 % groupsym3      - Group symbol for dim 3 (eg, 'x.' % x symbol, filled circle)
@@ -39,7 +40,7 @@ function varargout = distatis(data,group3,groupcolor3,groupsym3,groupsiz3,groupl
 % https://www.mathworks.com/matlabcentral/fileexchange/3345-plot-arrowhead
 %__________________________________________________________________________
 % Copyright (C) 2020 Daisuke MATSUYOSHI
-% $Id: distatis.m 0004 2020-07-11Z $
+% $Id: distatis.m 0005 2020-07-14Z $
 
 %% Data check
 [nx,ny,nz] = size(data);
@@ -48,43 +49,47 @@ if nx ~= ny
 end
 
 %% Settings
-if nargin < 2 || isempty(group3)
+if nargin < 2 || isempty(nPCs)
+    nPCs = 2;
+end
+
+if nargin < 3 || isempty(group3)
     group3 = 1:nz;
 end
 
-if nargin < 3 || isempty(groupcolor3)
+if nargin < 4 || isempty(groupcolor3)
     groupcolor3 = [];
 end
 
-if nargin < 4 || isempty(groupsym3)
+if nargin < 5 || isempty(groupsym3)
     groupsym3 = [];
 end
 
-if nargin < 5
+if nargin < 6
     groupsiz3 = [];
 end
 
-if nargin < 6 || isempty(grouplabel3)
+if nargin < 7 || isempty(grouplabel3)
     grouplabel3 = cellstr(num2str(transpose(1:nz)));
 end
 
-if nargin < 7 || isempty(compcoding)
+if nargin < 8 || isempty(compcoding)
     compcoding = 1:nx;
 end
 
-if nargin < 8 || isempty(compcolor)
+if nargin < 9 || isempty(compcolor)
     compcolor = [];
 end
 
-if nargin < 9 || isempty(compsym)
+if nargin < 10 || isempty(compsym)
     compsym = [];
 end
 
-if nargin < 10
+if nargin < 11
     compsiz = [];
 end
 
-if nargin < 11 || isempty(complabel)
+if nargin < 12 || isempty(complabel)
     complabel = cellstr(num2str(transpose(1:nx)));
 end
 
@@ -141,6 +146,7 @@ varargout{3} = Fscore;
 
 %% Plots
 % PCA Plot1 (PC1 & PC2) | Dim 3
+PCx = 1; PCy = 2;
 figure
 hold on
 gscatter(G(:,1),G(:,2),group3,groupcolor3,groupsym3,groupsiz3,'off') % weighted with eigenvalue
@@ -148,20 +154,20 @@ text(G(:,1), G(:,2), grouplabel3);
 plot([0,0],ylim,':k','HandleVisibility','off')
 plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
 plot(xlim,[0,0],':k','HandleVisibility','off')
-xlabel(sprintf('PC1 (%.1f%%)',d(1)/sum(d)*100))
-ylabel(sprintf('PC2 (%.1f%%)',d(2)/sum(d)*100))
+xlabel(sprintf('PC%d (%.1f%%)',PCx,d(1)/sum(d)*100))
+ylabel(sprintf('PC%d (%.1f%%)',PCy,d(2)/sum(d)*100))
 hold off
 
 % PCA Plot2 (PC1 & PC2) | Compromise Dim 1/2
 figure
 hold on
-gscatter(eigSplusV(:,1),eigSplusV(:,2),compcoding,compcolor,compsym,compsiz,'off')
-text(eigSplusV(:,1), eigSplusV(:,2), complabel);
+gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
+text(eigSplusV(:,PCx), eigSplusV(:,PCy), complabel);
 plot([0,0],ylim,':k','HandleVisibility','off')
 plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
 plot(xlim,[0,0],':k','HandleVisibility','off')
-xlabel(sprintf('PC1 (%.1f%%)',dSplus(1)/sum(dSplus)*100))
-ylabel(sprintf('PC2 (%.1f%%)',dSplus(2)/sum(dSplus)*100))
+xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
 hold off
 
 % PCA Plot3 (PC1 & PC2) | Compromise Dim 1/2 & 3
@@ -188,53 +194,127 @@ end
 
 figure
 hold on
-gscatter(eigSplusV(:,1),eigSplusV(:,2),compcoding,compcolor,compsym,compsiz,'off')
-text(eigSplusV(:,1), eigSplusV(:,2), complabel);
+gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
+text(eigSplusV(:,PCx), eigSplusV(:,PCy), complabel);
 plot(xlim,[0,0],':k','HandleVisibility','off')
 for j=1:size(Fs,3)
     for i=1:length(eigSplusV)
-        x0 = eigSplusV(i,1);
-        y0 = eigSplusV(i,2);
-        x1 = Fs(i,1,j);
-        y1 = Fs(i,2,j);
+        x0 = eigSplusV(i,PCx);
+        y0 = eigSplusV(i,PCy);
+        x1 = Fs(i,PCx,j);
+        y1 = Fs(i,PCy,j);
         plot_arrow(x0, y0, x1, y1,'color',cols(j,:),'facecolor',cols(j,:));
     end
 end
 plot([0,0],ylim,':k','HandleVisibility','off')
 plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
-xlabel(sprintf('PC1 (%.1f%%)',dSplus(1)/sum(dSplus)*100))
-ylabel(sprintf('PC2 (%.1f%%)',dSplus(2)/sum(dSplus)*100))
+xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
 hold off
 
-% PCA Plot4 (PC3 & PC4) | Compromise Dim 1/2
-figure
-hold on
-gscatter(eigSplusV(:,3),eigSplusV(:,4),compcoding,compcolor,compsym,compsiz,'off')
-text(eigSplusV(:,3), eigSplusV(:,4), complabel);
-plot([0,0],ylim,':k','HandleVisibility','off')
-plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
-plot(xlim,[0,0],':k','HandleVisibility','off')
-xlabel(sprintf('PC3 (%.1f%%)',dSplus(3)/sum(dSplus)*100))
-ylabel(sprintf('PC4 (%.1f%%)',dSplus(4)/sum(dSplus)*100))
-hold off
+if nPCs == 3
+    % PCA Plot | Compromise Dim 1/2
+    PCx = 1; PCy = 3;
+    figure
+    hold on
+    gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
+    text(eigSplusV(:,PCx), eigSplusV(:,PCy), complabel);
+    plot([0,0],ylim,':k','HandleVisibility','off')
+    plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+    plot(xlim,[0,0],':k','HandleVisibility','off')
+    xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+    ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+    hold off
 
-% PCA Plot5 (PC3 & PC4) | Compromise Dim 1/2 & 3
-figure
-hold on
-gscatter(eigSplusV(:,3),eigSplusV(:,4),compcoding,compcolor,compsym,compsiz,'off')
-text(eigSplusV(:,3), eigSplusV(:,4), complabel);
-plot(xlim,[0,0],':k','HandleVisibility','off')
-for j=1:size(Fs,3)
-    for i=1:length(eigSplusV)
-        x0 = eigSplusV(i,3);
-        y0 = eigSplusV(i,4);
-        x1 = Fs(i,3,j);
-        y1 = Fs(i,4,j);
-        plot_arrow(x0, y0, x1, y1,'color',cols(j,:),'facecolor',cols(j,:));
+    % PCA Plot | Compromise Dim 1/2 & 3
+    figure
+    hold on
+    gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
+    text(eigSplusV(:,PCx), eigSplusV(:,PCy), complabel);
+    plot(xlim,[0,0],':k','HandleVisibility','off')
+    for j=1:size(Fs,3)
+        for i=1:length(eigSplusV)
+            x0 = eigSplusV(i,PCx);
+            y0 = eigSplusV(i,PCy);
+            x1 = Fs(i,PCx,j);
+            y1 = Fs(i,PCy,j);
+            plot_arrow(x0, y0, x1, y1,'color',cols(j,:),'facecolor',cols(j,:));
+        end
+    end
+    plot([0,0],ylim,':k','HandleVisibility','off')
+    plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+    xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+    ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+    hold off
+
+    % PCA Plot | Compromise Dim 1/2
+    PCx = 2; PCy = 3;
+    figure
+    hold on
+    gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
+    text(eigSplusV(:,PCx), eigSplusV(:,PCy), complabel);
+    plot([0,0],ylim,':k','HandleVisibility','off')
+    plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+    plot(xlim,[0,0],':k','HandleVisibility','off')
+    xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+    ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+    hold off
+
+    % PCA Plot | Compromise Dim 1/2 & 3
+    figure
+    hold on
+    gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
+    text(eigSplusV(:,PCx), eigSplusV(:,PCy), complabel);
+    plot(xlim,[0,0],':k','HandleVisibility','off')
+    for j=1:size(Fs,3)
+        for i=1:length(eigSplusV)
+            x0 = eigSplusV(i,PCx);
+            y0 = eigSplusV(i,PCy);
+            x1 = Fs(i,PCx,j);
+            y1 = Fs(i,PCy,j);
+            plot_arrow(x0, y0, x1, y1,'color',cols(j,:),'facecolor',cols(j,:));
+        end
+    end
+    plot([0,0],ylim,':k','HandleVisibility','off')
+    plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+    xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+    ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+    hold off
+elseif nPCs > 3
+    nLoop = floor((nPCs-2)/2);
+    for i = 1:nLoop
+        % PCA Plot | Compromise Dim 1/2
+        PCx = i*2+1; PCy = i*2+2;
+        figure
+        hold on
+        gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
+        text(eigSplusV(:,PCx), eigSplusV(:,PCy), complabel);
+        plot([0,0],ylim,':k','HandleVisibility','off')
+        plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+        plot(xlim,[0,0],':k','HandleVisibility','off')
+        xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+        ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+        hold off
+
+        % PCA Plot | Compromise Dim 1/2 & 3
+        figure
+        hold on
+        gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
+        text(eigSplusV(:,PCx), eigSplusV(:,PCy), complabel);
+        plot(xlim,[0,0],':k','HandleVisibility','off')
+        for j=1:size(Fs,3)
+            for i=1:length(eigSplusV)
+                x0 = eigSplusV(i,PCx);
+                y0 = eigSplusV(i,PCy);
+                x1 = Fs(i,PCx,j);
+                y1 = Fs(i,PCy,j);
+                plot_arrow(x0, y0, x1, y1,'color',cols(j,:),'facecolor',cols(j,:));
+            end
+        end
+        plot([0,0],ylim,':k','HandleVisibility','off')
+        plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+        xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+        ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+        hold off
     end
 end
-plot([0,0],ylim,':k','HandleVisibility','off')
-plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
-xlabel(sprintf('PC3 (%.1f%%)',dSplus(3)/sum(dSplus)*100))
-ylabel(sprintf('PC4 (%.1f%%)',dSplus(4)/sum(dSplus)*100))
-hold off
