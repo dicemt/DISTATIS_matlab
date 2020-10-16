@@ -40,7 +40,7 @@ function varargout = distatis(data,nPCs,group3,groupcolor3,groupsym3,groupsiz3,g
 % https://www.mathworks.com/matlabcentral/fileexchange/3345-plot-arrowhead
 %__________________________________________________________________________
 % Copyright (C) 2020 Daisuke MATSUYOSHI
-% $Id: distatis.m 0005 2020-07-14Z $
+% $Id: distatis.m 0006 2020-10-16Z $
 
 %% Data check
 [nx,ny,nz] = size(data);
@@ -184,11 +184,15 @@ if isempty(groupcolor3)
         cols = colorcube;
     end
 else
+    Gidx = unique(group3);
     nGroup = numel(unique(group3));
-    nPerGroup = nz/nGroup;
+    nPerGroup = zeros(nGroup,1);
+    for i=1:nGroup
+        nPerGroup(i) = sum(group3==Gidx(i));
+    end
     cols = zeros(nz,3);
     for i=1:nGroup
-        cols((i-1)*nPerGroup+1:i*nPerGroup,:) = repmat(groupcolor3(i,:),nPerGroup,1);
+        cols((i-1)*nPerGroup(i)+1:i*nPerGroup(i),:) = repmat(groupcolor3(i,:),nPerGroup(i),1);
     end
 end
 
