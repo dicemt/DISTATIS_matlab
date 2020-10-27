@@ -1,4 +1,5 @@
 function distData = distatis_s2d(data)
+% Copyright (C) 2020 Daisuke MATSUYOSHI
 
 [nrow,ncol] = size(data);
 distData = zeros(nrow,nrow,ncol);

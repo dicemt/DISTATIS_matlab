@@ -1,4 +1,4 @@
-function varargout = distatis(data,nPCs,group3,groupcolor3,groupsym3,groupsiz3,grouplabel3,compcoding,compcolor,compsym,compsiz,complabel)
+function varargout = distatis(data,nPCs,group3,groupcolor3,groupsym3,groupsiz3,grouplabel3,compcoding,compcolor,compsym,compsiz,complabel,savepng)
 % Perform DISTATIS on a 3D distance (dissimilarity) matrix
 % FORMAT [eigval,eigvector,fscore,eigval3,eigvector3,fscore3] = distatis(data)
 % INPUTS:
@@ -16,6 +16,7 @@ function varargout = distatis(data,nPCs,group3,groupcolor3,groupsym3,groupsiz3,g
 % compsym        - Compromise symbol for dim 1/2 (eg, 'x.' % x symbol, filled circle)
 % compsiz        - Compromise size for dim 1/2 (eg, [4 8] % 2 groups)
 % complabel      - Compromise label for dim 1/2 (eg, {'M1','M2','M3','F1','F2','F3'})
+% savepng        - Save figures as PNG files (default = 'FALSE')
 % 
 % OUTPUTS:
 % eigval         - Eigenvalues for compromise
@@ -40,7 +41,7 @@ function varargout = distatis(data,nPCs,group3,groupcolor3,groupsym3,groupsiz3,g
 % https://www.mathworks.com/matlabcentral/fileexchange/3345-plot-arrowhead
 %__________________________________________________________________________
 % Copyright (C) 2020 Daisuke MATSUYOSHI
-% $Id: distatis.m 0006 2020-10-16Z $
+% $Id: distatis.m 0007 2020-10-27Z $
 
 %% Data check
 [nx,ny,nz] = size(data);
@@ -93,7 +94,9 @@ if nargin < 12 || isempty(complabel)
     complabel = cellstr(num2str(transpose(1:nx)));
 end
 
-
+if nargin < 13 || isempty(savepng)
+    savepng = 'FALSE';
+end
 
 %% Initialize
 matI = eye(nx);
@@ -157,6 +160,9 @@ plot(xlim,[0,0],':k','HandleVisibility','off')
 xlabel(sprintf('PC%d (%.1f%%)',PCx,d(1)/sum(d)*100))
 ylabel(sprintf('PC%d (%.1f%%)',PCy,d(2)/sum(d)*100))
 hold off
+if strcmpi(savepng,'TRUE')
+    saveas(gcf,sprintf('%s_distatis_1.png',inputname(1)))
+end
 
 % PCA Plot2 (PC1 & PC2) | Compromise Dim 1/2
 figure
@@ -169,6 +175,9 @@ plot(xlim,[0,0],':k','HandleVisibility','off')
 xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
 ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
 hold off
+if strcmpi(savepng,'TRUE')
+    saveas(gcf,sprintf('%s_distatis_2.png',inputname(1)))
+end
 
 % PCA Plot3 (PC1 & PC2) | Compromise Dim 1/2 & 3
 Fs = zeros(size(data));
@@ -215,6 +224,9 @@ plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full leng
 xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
 ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
 hold off
+if strcmpi(savepng,'TRUE')    
+    saveas(gcf,sprintf('%s_distatis_3.png',inputname(1)))
+end
 
 if nPCs == 3
     % PCA Plot | Compromise Dim 1/2
@@ -229,7 +241,10 @@ if nPCs == 3
     xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
     ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
     hold off
-
+    if strcmpi(savepng,'TRUE')
+        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),4))
+    end
+    
     % PCA Plot | Compromise Dim 1/2 & 3
     figure
     hold on
@@ -250,6 +265,9 @@ if nPCs == 3
     xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
     ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
     hold off
+    if strcmpi(savepng,'TRUE')
+        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),5))
+    end
 
     % PCA Plot | Compromise Dim 1/2
     PCx = 2; PCy = 3;
@@ -263,7 +281,10 @@ if nPCs == 3
     xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
     ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
     hold off
-
+    if strcmpi(savepng,'TRUE')
+        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),6))
+    end
+    
     % PCA Plot | Compromise Dim 1/2 & 3
     figure
     hold on
@@ -284,6 +305,9 @@ if nPCs == 3
     xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
     ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
     hold off
+    if strcmpi(savepng,'TRUE')
+        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),7))
+    end
 elseif nPCs > 3
     nLoop = floor((nPCs-2)/2);
     for i = 1:nLoop
@@ -299,7 +323,10 @@ elseif nPCs > 3
         xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
         ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
         hold off
-
+        if strcmpi(savepng,'TRUE')
+            saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),3+i*2-1))
+        end
+        
         % PCA Plot | Compromise Dim 1/2 & 3
         figure
         hold on
@@ -307,11 +334,11 @@ elseif nPCs > 3
         text(eigSplusV(:,PCx), eigSplusV(:,PCy), complabel);
         plot(xlim,[0,0],':k','HandleVisibility','off')
         for j=1:size(Fs,3)
-            for i=1:length(eigSplusV)
-                x0 = eigSplusV(i,PCx);
-                y0 = eigSplusV(i,PCy);
-                x1 = Fs(i,PCx,j);
-                y1 = Fs(i,PCy,j);
+            for k=1:length(eigSplusV)
+                x0 = eigSplusV(k,PCx);
+                y0 = eigSplusV(k,PCy);
+                x1 = Fs(k,PCx,j);
+                y1 = Fs(k,PCy,j);
                 plot_arrow(x0, y0, x1, y1,'color',cols(j,:),'facecolor',cols(j,:));
             end
         end
@@ -320,5 +347,8 @@ elseif nPCs > 3
         xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
         ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
         hold off
+        if strcmpi(savepng,'TRUE')
+            saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),3+i*2))
+        end
     end
 end
