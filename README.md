@@ -1,5 +1,5 @@
 # DISTATIS_matlab
-Daisuke Matsuyoshi (National Institute for Radiological Sciences ([QST-NIRS](https://www.qst.go.jp/site/qst-english/)) and [Araya, Inc.](https://www.araya.org/))
+Author: Daisuke Matsuyoshi (National Institute for Radiological Sciences ([QST-NIRS](https://www.qst.go.jp/site/qst-english/)) and [Araya, Inc.](https://www.araya.org/))
 
 Implementation of DISTATIS written in MATLAB. DISTATIS is a generalization of classial multidimensional scaling and handles *m* sets of data tables collected on the same set of *n* observations, combining datasets into a common consensus structure, called "compromise."
 
@@ -30,7 +30,7 @@ Implementation of DISTATIS written in MATLAB. DISTATIS is a generalization of cl
 # License
 The DISTATIS_matlab is free but copyright software, distributed under the terms of the [BSD 3-Clause "New" or "Revised" License](https://choosealicense.com/licenses/bsd-3-clause/).
 
-Copyright (C) 2020 Daisuke Matsuyoshi
+Copyright (C) 2020-2022 Daisuke Matsuyoshi
 
 This program is free software: you can redistribute it and/or modify it under the terms of the BSD 3-Clause "New" or "Revised" License.
 

@@ -5,7 +5,7 @@ function varargout = distatis(data,nPCs,group3,groupcolor3,groupsym3,groupsiz3,g
 % data           - Distance (dissimilarity) matrix [n x n x m]
 %
 % OPTIONAL INPUTS (for plots):
-% nPCs           - The number of PCs to plot (default: 2)
+% nPCs           - The number of components to plot (default: 2)
 % group3         - Group coding for dim 3 (eg, [1 1 2 2] % 2 groups)
 % groupcolor3    - Group color for dim 3 (eg, [1 0 0; 0 0 1] % red, blue)
 % groupsym3      - Group symbol for dim 3 (eg, 'x.' % x symbol, filled circle)
@@ -40,8 +40,8 @@ function varargout = distatis(data,nPCs,group3,groupcolor3,groupsym3,groupsiz3,g
 % plot_arrow.m
 % https://www.mathworks.com/matlabcentral/fileexchange/3345-plot-arrowhead
 %__________________________________________________________________________
-% Copyright (C) 2020 Daisuke MATSUYOSHI
-% $Id: distatis.m 0007 2020-10-27Z $
+% Copyright (C) 2020-2022 Daisuke MATSUYOSHI
+% $Id: distatis.m 0008 2022-04-29Z $
 
 %% Data check
 [nx,ny,nz] = size(data);
@@ -124,7 +124,7 @@ end
 C = A ./ (n(:)*n(:).'); % Cosine matrix % N^(-1/2)*A*N^(-1/2)
 Rv = A ./ sqrt(diag(A)*diag(A).'); % Congruence coefficients
 
-% PCA
+% Eig Decompose
 [V,D] = eig(C);
 [d,idx] = sort(diag(D),'descend');
 Ds = D(idx,idx);
@@ -148,7 +148,7 @@ varargout{2} = eigSplusV;
 varargout{3} = Fscore;
 
 %% Plots
-% PCA Plot1 (PC1 & PC2) | Dim 3
+% Components Plot1 (Component1 & Component2) | Dim 3
 PCx = 1; PCy = 2;
 figure
 hold on
@@ -157,14 +157,14 @@ text(G(:,1), G(:,2), grouplabel3);
 plot([0,0],ylim,':k','HandleVisibility','off')
 plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
 plot(xlim,[0,0],':k','HandleVisibility','off')
-xlabel(sprintf('PC%d (%.1f%%)',PCx,d(1)/sum(d)*100))
-ylabel(sprintf('PC%d (%.1f%%)',PCy,d(2)/sum(d)*100))
+xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,d(1)/sum(d)*100))
+ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,d(2)/sum(d)*100))
 hold off
 if strcmpi(savepng,'TRUE')
     saveas(gcf,sprintf('%s_distatis_1.png',inputname(1)))
 end
 
-% PCA Plot2 (PC1 & PC2) | Compromise Dim 1/2
+% Components Plot2 (Component1 & Component2) | Compromise Dim 1/2
 figure
 hold on
 gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
@@ -172,14 +172,14 @@ text(eigSplusV(:,PCx), eigSplusV(:,PCy), complabel);
 plot([0,0],ylim,':k','HandleVisibility','off')
 plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
 plot(xlim,[0,0],':k','HandleVisibility','off')
-xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
-ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
 hold off
 if strcmpi(savepng,'TRUE')
     saveas(gcf,sprintf('%s_distatis_2.png',inputname(1)))
 end
 
-% PCA Plot3 (PC1 & PC2) | Compromise Dim 1/2 & 3
+% Components Plot3 (Component1 & Component2) | Compromise Dim 1/2 & 3
 Fs = zeros(size(data));
 for i=1:size(Snorm,3)
     Fs(:,:,i) = Snorm(:,:,i) * eigSplusV * diag(dSplus.^(-1/2));
@@ -190,7 +190,7 @@ if isempty(groupcolor3)
     if nz < 15
         cols = [cols; lines];
     else
-        cols = colorcube;
+        cols = [winter(ceil(nz/2));autumn(ceil(nz/2))];
     end
 else
     Gidx = unique(group3);
@@ -221,16 +221,32 @@ for j=1:size(Fs,3)
 end
 plot([0,0],ylim,':k','HandleVisibility','off')
 plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
-xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
-ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
 hold off
 if strcmpi(savepng,'TRUE')    
     saveas(gcf,sprintf('%s_distatis_3.png',inputname(1)))
 end
 
 if nPCs == 3
-    % PCA Plot | Compromise Dim 1/2
+    % 1st
     PCx = 1; PCy = 3;
+    % Components Plot | Compromise Dim 3
+    figure
+    hold on
+    gscatter(G(:,PCx),G(:,PCy),group3,groupcolor3,groupsym3,groupsiz3,'off') % weighted with eigenvalue
+    text(G(:,PCx), G(:,PCy), grouplabel3);
+    plot([0,0],ylim,':k','HandleVisibility','off')
+    plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+    plot(xlim,[0,0],':k','HandleVisibility','off')
+    xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,d(PCx)/sum(d)*100))
+    ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,d(PCy)/sum(d)*100))
+    hold off
+    if strcmpi(savepng,'TRUE')
+        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),4))
+    end
+
+    % Components Plot | Compromise Dim 1/2
     figure
     hold on
     gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
@@ -238,14 +254,14 @@ if nPCs == 3
     plot([0,0],ylim,':k','HandleVisibility','off')
     plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
     plot(xlim,[0,0],':k','HandleVisibility','off')
-    xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
-    ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+    xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+    ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
     hold off
     if strcmpi(savepng,'TRUE')
-        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),4))
+        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),5))
     end
     
-    % PCA Plot | Compromise Dim 1/2 & 3
+    % Components Plot | Compromise Dim 1/2 & 3
     figure
     hold on
     gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
@@ -262,14 +278,31 @@ if nPCs == 3
     end
     plot([0,0],ylim,':k','HandleVisibility','off')
     plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
-    xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
-    ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+    xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+    ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
     hold off
     if strcmpi(savepng,'TRUE')
-        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),5))
+        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),6))
     end
 
-    % PCA Plot | Compromise Dim 1/2
+    % 2nd
+    PCx = 2; PCy = 3;
+    % Components Plot | Compromise Dim 3
+    figure
+    hold on
+    gscatter(G(:,PCx),G(:,PCy),group3,groupcolor3,groupsym3,groupsiz3,'off') % weighted with eigenvalue
+    text(G(:,PCx), G(:,PCy), grouplabel3);
+    plot([0,0],ylim,':k','HandleVisibility','off')
+    plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+    plot(xlim,[0,0],':k','HandleVisibility','off')
+    xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,d(PCx)/sum(d)*100))
+    ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,d(PCy)/sum(d)*100))
+    hold off
+    if strcmpi(savepng,'TRUE')
+        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),7))
+    end
+
+    % Components Plot | Compromise Dim 1/2
     PCx = 2; PCy = 3;
     figure
     hold on
@@ -278,14 +311,14 @@ if nPCs == 3
     plot([0,0],ylim,':k','HandleVisibility','off')
     plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
     plot(xlim,[0,0],':k','HandleVisibility','off')
-    xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
-    ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+    xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+    ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
     hold off
     if strcmpi(savepng,'TRUE')
-        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),6))
+        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),8))
     end
     
-    % PCA Plot | Compromise Dim 1/2 & 3
+    % Components Plot | Compromise Dim 1/2 & 3
     figure
     hold on
     gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
@@ -302,17 +335,32 @@ if nPCs == 3
     end
     plot([0,0],ylim,':k','HandleVisibility','off')
     plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
-    xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
-    ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+    xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+    ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
     hold off
     if strcmpi(savepng,'TRUE')
-        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),7))
+        saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),9))
     end
 elseif nPCs > 3
     nLoop = floor((nPCs-2)/2);
     for i = 1:nLoop
-        % PCA Plot | Compromise Dim 1/2
         PCx = i*2+1; PCy = i*2+2;
+        % Components Plot | Dim 3
+        figure
+        hold on
+        gscatter(G(:,PCx),G(:,PCy),group3,groupcolor3,groupsym3,groupsiz3,'off') % weighted with eigenvalue
+        text(G(:,PCx), G(:,PCy), grouplabel3);
+        plot([0,0],ylim,':k','HandleVisibility','off')
+        plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
+        plot(xlim,[0,0],':k','HandleVisibility','off')
+        xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,d(PCx)/sum(d)*100))
+        ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,d(PCy)/sum(d)*100))
+        hold off
+        if strcmpi(savepng,'TRUE')
+            saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),3+i*3-2))
+        end
+
+        % Components Plot | Compromise Dim 1/2
         figure
         hold on
         gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
@@ -320,14 +368,14 @@ elseif nPCs > 3
         plot([0,0],ylim,':k','HandleVisibility','off')
         plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
         plot(xlim,[0,0],':k','HandleVisibility','off')
-        xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
-        ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+        xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+        ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
         hold off
         if strcmpi(savepng,'TRUE')
-            saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),3+i*2-1))
+            saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),3+i*3-1))
         end
         
-        % PCA Plot | Compromise Dim 1/2 & 3
+        % Components Plot | Compromise Dim 1/2 & 3
         figure
         hold on
         gscatter(eigSplusV(:,PCx),eigSplusV(:,PCy),compcoding,compcolor,compsym,compsiz,'off')
@@ -344,11 +392,11 @@ elseif nPCs > 3
         end
         plot([0,0],ylim,':k','HandleVisibility','off')
         plot([0,0],ylim,':k','HandleVisibility','off') % draw twice to plot at full length
-        xlabel(sprintf('PC%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
-        ylabel(sprintf('PC%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
+        xlabel(sprintf('LatentComponent%d (%.1f%%)',PCx,dSplus(PCx)/sum(dSplus)*100))
+        ylabel(sprintf('LatentComponent%d (%.1f%%)',PCy,dSplus(PCy)/sum(dSplus)*100))
         hold off
         if strcmpi(savepng,'TRUE')
-            saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),3+i*2))
+            saveas(gcf,sprintf('%s_distatis_%d.png',inputname(1),3+i*3))
         end
     end
 end
